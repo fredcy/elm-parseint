@@ -1,5 +1,6 @@
 module Main (..) where
 
+import Array
 import Check.Investigator as CI
 import Check.Test
 import Graphics.Element exposing (Element)
@@ -45,7 +46,7 @@ tests =
 
 checkSuite : Test
 checkSuite =
-  suite "checks" [ claimMatchesToInt ]
+  suite "checks" [ claimMatchesToInt, hexClaim, hexClaim2 ]
 
 
 canonResult : Result ParseInt.Error Int -> Result String Int
@@ -65,8 +66,30 @@ claimMatchesToInt =
     (parseInt 10 >> canonResult)
     String.toInt
     stringInvestigator
-    10
+    100
     (initialSeed 99)
+
+
+hexClaim : Test
+hexClaim =
+  Check.Test.test
+    "Hex conversion, dropping rightmost char results in dividing by 16"
+    (parseInt 16 >> Result.map (\i -> i // 16))
+    (String.dropRight 1 >> parseInt 16)
+    hexStringInvestigator
+    100
+    (initialSeed 88)
+
+
+hexClaim2 : Test
+hexClaim2 =
+  Check.Test.test
+    "Hex conversion, adding '0' to right results in multiplying by 16"
+    (parseInt 16 >> Result.map (\i -> i * 16))
+    ((\s -> s ++ "0") >> parseInt 16)
+    hexStringInvestigator
+    100
+    (initialSeed 88)
 
 
 randomDigitChar : Random.Generator Char
@@ -74,10 +97,25 @@ randomDigitChar =
   Random.Char.char 48 57
 
 
+randomHexChar : Random.Generator Char
+randomHexChar =
+  let
+    hexChars = Array.fromList [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ]
+  in
+    Random.map (\i -> Array.get i hexChars |> Maybe.withDefault 'X') (Random.int 0 15)
+
+
 stringInvestigator : CI.Investigator String
 stringInvestigator =
   CI.investigator
     (Random.String.rangeLengthString 1 10 randomDigitChar)
+    (Shrink.string)
+
+
+hexStringInvestigator : CI.Investigator String
+hexStringInvestigator =
+  CI.investigator
+    (Random.String.rangeLengthString 1 8 randomHexChar)
     (Shrink.string)
 
 
