@@ -1,4 +1,4 @@
-module ParseInt (..) where
+module ParseInt (parseInt, Error) where
 
 import Char
 import String
@@ -6,25 +6,26 @@ import String
 
 type Error
   = InvalidChar Char
-  | OutOfRange Int
+  | OutOfRange Char
 
 
+{-| Convert string to int assuming given radix. -}
 parseInt : Int -> String -> Result Error Int
-parseInt base string =
-  parseIntR base (String.reverse string)
+parseInt radix string =
+  parseIntR radix (String.reverse string)
 
 
 parseIntR : Int -> String -> Result Error Int
-parseIntR base rstring =
+parseIntR radix rstring =
   case String.uncons rstring of
     Nothing ->
       Ok 0
 
     Just ( c, rest ) ->
       Result.map2
-        (\ci ri -> ci + ri * base)
-        (intFromChar base c)
-        (parseIntR base rest)
+        (\ci ri -> ci + ri * radix)
+        (intFromChar radix c)
+        (parseIntR radix rest)
 
 
 charOffset : Char -> Char -> Int
@@ -32,21 +33,31 @@ charOffset basis c =
   Char.toCode c - Char.toCode basis
 
 
-intFromChar : Int -> Char -> Result Error Int
-intFromChar base c =
+isBetween : Char -> Char -> Char -> Bool
+isBetween a b c =
   let
-    toInt c =
-      if Char.isDigit c then
+    ci = Char.toCode c
+  in
+    Char.toCode a <= ci && ci <= Char.toCode b
+
+
+intFromChar : Int -> Char -> Result Error Int
+intFromChar radix c =
+  let
+    toInt =
+      if isBetween '0' '9' c then
         Ok (charOffset '0' c)
-      else if Char.isHexDigit c then
-        Ok (charOffset 'a' (Char.toLower c) + 10)
+      else if isBetween 'a' 'z' c then
+        Ok (10 + charOffset 'a' c)
+      else if isBetween 'A' 'Z' c then
+        Ok (10 + charOffset 'A' c)
       else
         Err (InvalidChar c)
 
     validInt i =
-      if i < base then
+      if i < radix then
         Ok i
       else
-        Err (OutOfRange i)
+        Err (OutOfRange c)
   in
-    toInt c `Result.andThen` validInt
+    toInt `Result.andThen` validInt
