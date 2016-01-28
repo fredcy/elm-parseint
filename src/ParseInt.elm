@@ -7,12 +7,17 @@ import String
 type Error
   = InvalidChar Char
   | OutOfRange Char
+  | InvalidRadix Int
 
 
-{-| Convert string to int assuming given radix. -}
+{-| Convert string to int assuming given radix.
+-}
 parseInt : Int -> String -> Result Error Int
 parseInt radix string =
-  parseIntR radix (String.reverse string)
+  if 2 <= radix && radix <= 36 then
+    parseIntR radix (String.reverse string)
+  else
+    Err (InvalidRadix radix)
 
 
 parseIntR : Int -> String -> Result Error Int
@@ -28,19 +33,27 @@ parseIntR radix rstring =
         (parseIntR radix rest)
 
 
+{-| Offset of character from basis character in the ASCII table.
+-}
 charOffset : Char -> Char -> Int
 charOffset basis c =
   Char.toCode c - Char.toCode basis
 
 
+{-| Test if character falls in given range (inclusive of the limits) in the ASCII table.
+-}
 isBetween : Char -> Char -> Char -> Bool
-isBetween a b c =
+isBetween lower upper c =
   let
     ci = Char.toCode c
   in
-    Char.toCode a <= ci && ci <= Char.toCode b
+    Char.toCode lower <= ci && ci <= Char.toCode upper
 
 
+{-| Convert alphanumeric character to int value as a "digit", validating against
+the given radix. Alphabetic characters past "F" are extended in the natural way:
+'G' == 16, 'H' == 17, etc. Upper and lower case are treated the same.
+-}
 intFromChar : Int -> Char -> Result Error Int
 intFromChar radix c =
   let

@@ -5,11 +5,12 @@ import Check.Investigator as CI
 import Check.Test
 import Graphics.Element exposing (Element)
 import ElmTest exposing (..)
+import Lazy.List exposing (empty, (:::))
 import ParseInt exposing (parseInt)
 import Random exposing (initialSeed)
 import Random.Char
 import Random.String
-import Shrink
+import Shrink exposing (Shrinker)
 import String
 
 
@@ -70,12 +71,23 @@ claimMatchesToInt =
     (initialSeed 99)
 
 
+{-| Integer division that handles large numerators (mostly) correctly.  See
+<https://github.com/elm-lang/core/issues/92>. The `toFloat` conversion can lose
+precision and cause the result to be off as well.
+-}
+(//) : Int -> Int -> Int
+(//) x y =
+  floor (Basics.toFloat x / Basics.toFloat y)
+
+
 hexClaim : Test
 hexClaim =
   Check.Test.test
     "Hex conversion, dropping rightmost char results in dividing by 16"
-    (parseInt 16 >> Result.map (\i -> i // 16))
+    -- got
     (String.dropRight 1 >> parseInt 16)
+    -- expected
+    (parseInt 16 >> Result.map (\i -> i // 16))
     hexStringInvestigator
     100
     (initialSeed 88)
@@ -105,18 +117,37 @@ randomHexChar =
     Random.map (\i -> Array.get i hexChars |> Maybe.withDefault 'X') (Random.int 0 15)
 
 
+{-| Shrink by successively removing the head of the string. Do not include empty string.
+-}
+shrinker : Shrink.Shrinker String
+shrinker s =
+  case String.uncons s |> Debug.log "shrinker" of
+    Nothing ->
+      empty
+
+    Just ( _, rest ) ->
+      if rest == "" then
+        empty
+      else
+        rest ::: shrinker rest
+
+{-| Generate random digit strings. Limit to 16 chars to keep full precision in javascript. -}
 stringInvestigator : CI.Investigator String
 stringInvestigator =
   CI.investigator
-    (Random.String.rangeLengthString 1 10 randomDigitChar)
-    (Shrink.string)
+    (Random.String.rangeLengthString 1 16 randomDigitChar)
+    shrinker
 
 
+{-| Generate strings containing random hexidecimal characters.  Since javascript
+ loses precision for numbers over 2 ^ 54 (40000000000000 in hex) we limit the
+ strings to 13 chars long to stay just under that.
+-}
 hexStringInvestigator : CI.Investigator String
 hexStringInvestigator =
   CI.investigator
-    (Random.String.rangeLengthString 1 8 randomHexChar)
-    (Shrink.string)
+    (Random.String.rangeLengthString 1 13 randomHexChar)
+    shrinker
 
 
 main : Element
