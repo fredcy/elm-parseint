@@ -1,22 +1,37 @@
 module ParseInt (parseInt, parseIntRadix, Error(..)) where
 
+{-| Functions for converting a String value to Int.
+
+    parseInt "314159" == Ok 314159
+    parseIntRadix 16 "DEADBEEF" = Ok 3735928559
+    parseInt "foo" = Err (OutOfRange 'o')
+
+# Functions
+@docs parseInt, parseIntRadix
+
+# Errors
+@docs Error
+-}
+
 import Char
 import Result exposing (andThen)
 import String
 
 
+{-| Possible Result.Err returns from the parseInt functions. -}
 type Error
   = InvalidChar Char
   | OutOfRange Char
   | InvalidRadix Int
 
 
+{-| Convert String to Int assuming base 10. -}
 parseInt : String -> Result Error Int
 parseInt =
   parseIntRadix 10
 
 
-{-| Convert string to int assuming given radix.
+{-| Convert String to Int assuming given radix. Radix can be any of [2..36].
 -}
 parseIntRadix : Int -> String -> Result Error Int
 parseIntRadix radix string =

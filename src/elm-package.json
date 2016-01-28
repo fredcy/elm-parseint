@@ -1,12 +1,12 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/user/project.git",
+    "summary": "Functions to convert String to Int in various radixes",
+    "repository": "https://github.com/fredcy/elm-parseint.git",
     "license": "BSD3",
     "source-directories": [
         "."
     ],
-    "exposed-modules": [],
+    "exposed-modules": ["ParseInt"],
     "dependencies": {
         "elm-lang/core": "3.0.0 <= v < 4.0.0"
     },

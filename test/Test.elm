@@ -39,6 +39,7 @@ tests =
     , test "hex 2" <| assertEqual (Ok 291) (parseIntRadix 16 "123")
     , test "base 32" <| assertEqual (Ok 32767) (parseIntRadix 32 "VVV")
     , test "base 36" <| assertEqual (Ok 1295) (parseIntRadix 36 "ZZ")
+    , test "empty string" <| assertEqual (Ok 0) (parseInt "")
     , test "ignore leading zeroes" <| assertEqual (Ok 549) (parseInt "00549")
     , test "oct out of range" <| assert <| isErr (parseIntRadix 8 "8")
     , test "nonnumeric string, base 10" <| assert <| isErr (parseInt "foobar")
