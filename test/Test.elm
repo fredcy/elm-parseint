@@ -37,11 +37,14 @@ tests =
     , test "simple oct" (assertEqual (Ok 15) (parseInt 8 "17"))
     , test "hex" (assertEqual (Ok 2748) (parseInt 16 "abc"))
     , test "hex 2" <| assertEqual (Ok 291) (parseInt 16 "123")
+    , test "base 32" <| assertEqual (Ok 32767) (parseInt 32 "VVV")
+    , test "base 36" <| assertEqual (Ok 1295) (parseInt 36 "ZZ")
     , test "ignore leading zeroes" <| assertEqual (Ok 549) (parseInt 10 "00549")
     , test "oct out of range" <| assert <| isErr (parseInt 8 "8")
     , test "nonnumeric string, base 10" <| assert <| isErr (parseInt 10 "foobar")
     , test "0x prefix is invalid" <| assert <| isErr (parseInt 16 "0xdeadbeef")
     , test "invalid character" <| assertErr <| parseInt 10 "*&^*&^*y"
+    , test "invalid radix" <| assertErr <| parseInt 37 "90210"
     ]
 
 
@@ -131,7 +134,9 @@ shrinker s =
       else
         rest ::: shrinker rest
 
-{-| Generate random digit strings. Limit to 16 chars to keep full precision in javascript. -}
+
+{-| Generate random digit strings. Limit to 16 chars to keep full precision in javascript.
+-}
 stringInvestigator : CI.Investigator String
 stringInvestigator =
   CI.investigator

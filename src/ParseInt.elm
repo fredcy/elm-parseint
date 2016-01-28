@@ -1,6 +1,7 @@
-module ParseInt (parseInt, Error) where
+module ParseInt (parseInt, Error(..)) where
 
 import Char
+import Result exposing (andThen)
 import String
 
 
@@ -27,10 +28,11 @@ parseIntR radix rstring =
       Ok 0
 
     Just ( c, rest ) ->
-      Result.map2
-        (\ci ri -> ci + ri * radix)
-        (intFromChar radix c)
-        (parseIntR radix rest)
+      intFromChar radix c
+        `andThen` (\ci ->
+                    parseIntR radix rest
+                      `andThen` (\ri -> Ok (ci + ri * radix))
+                  )
 
 
 {-| Offset of character from basis character in the ASCII table.
