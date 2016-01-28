@@ -34,9 +34,10 @@ tests =
   suite
     "basic"
     [ test "decimal" <| assertEqual (Ok 314159) (parseInt "314159")
-    , test "simple oct" (assertEqual (Ok 15) (parseIntRadix 8 "17"))
-    , test "hex" (assertEqual (Ok 2748) (parseIntRadix 16 "abc"))
-    , test "hex 2" <| assertEqual (Ok 291) (parseIntRadix 16 "123")
+    , test "simple oct" (assertEqual (Ok 15) (parseIntOct "17"))
+    , test "hex" (assertEqual (Ok 2748) (parseIntHex "abc"))
+    , test "hex 2" <| assertEqual (Ok 291) (parseIntHex "123")
+    , test "hex 3" <| assertEqual (Ok 3735928559) (parseIntHex "DEADBEEF")
     , test "base 32" <| assertEqual (Ok 32767) (parseIntRadix 32 "VVV")
     , test "base 36" <| assertEqual (Ok 1295) (parseIntRadix 36 "ZZ")
     , test "empty string" <| assertEqual (Ok 0) (parseInt "")

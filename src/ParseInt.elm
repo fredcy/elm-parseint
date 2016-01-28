@@ -1,13 +1,9 @@
-module ParseInt (parseInt, parseIntRadix, Error(..)) where
+module ParseInt (parseInt, parseIntOct, parseIntHex, parseIntRadix, Error(..)) where
 
-{-| Functions for converting a String value to Int.
-
-    parseInt "314159" == Ok 314159
-    parseIntRadix 16 "DEADBEEF" = Ok 3735928559
-    parseInt "foo" = Err (OutOfRange 'o')
+{-| Convert String value to Int.
 
 # Functions
-@docs parseInt, parseIntRadix
+@docs parseInt, parseIntOct, parseIntHex, parseIntRadix
 
 # Errors
 @docs Error
@@ -18,20 +14,50 @@ import Result exposing (andThen)
 import String
 
 
-{-| Possible Result.Err returns from the parseInt functions. -}
+{-| Possible Result.Err returns from the parseInt functions.
+-}
 type Error
   = InvalidChar Char
   | OutOfRange Char
   | InvalidRadix Int
 
 
-{-| Convert String to Int assuming base 10. -}
+{-| Convert String to Int assuming base 10.
+
+    parseInt "314159" == Ok 314159
+    parseInt "foo" = Err (OutOfRange 'o')
+
+-}
 parseInt : String -> Result Error Int
 parseInt =
   parseIntRadix 10
 
 
-{-| Convert String to Int assuming given radix. Radix can be any of [2..36].
+{-| Convert String to Int assuming base 8 (octal). No leading '0' is required.
+-}
+parseIntOct : String -> Result Error Int
+parseIntOct =
+  parseIntRadix 8
+
+
+{-| Convert String to Int assuming base 16 (hexadecimal). No leading characters
+are expected; input starting with "0x" (or any other out of range character)
+will cause an `Err` return.
+-}
+parseIntHex : String -> Result Error Int
+parseIntHex =
+  parseIntRadix 16
+
+
+{-| Convert String to Int assuming given radix. Radix can be any of
+2..36. Leading zeroes are ignored. Valid characters are the alphanumerics:
+those in the ASCII range [0-9a-zA-Z]. Case does not matter. For radixes beyond
+16 the normal [A-F] range for hexadecimal is extended in the natural way. Any
+invalid character results in a `Err` return. Any valid character outside of the
+range defined by the radix also results in an `Err`. An `Ok` return means that the
+entire input string was consumed. The empty string results in `Ok 0`
+
+    parseIntRadix 16 "DEADBEEF" = Ok 3735928559
 -}
 parseIntRadix : Int -> String -> Result Error Int
 parseIntRadix radix string =
