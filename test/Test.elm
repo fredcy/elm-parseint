@@ -6,7 +6,7 @@ import Check.Test
 import Graphics.Element exposing (Element)
 import ElmTest exposing (..)
 import Lazy.List exposing (empty, (:::))
-import ParseInt exposing (parseInt)
+import ParseInt exposing (..)
 import Random exposing (initialSeed)
 import Random.Char
 import Random.String
@@ -33,18 +33,18 @@ tests : Test
 tests =
   suite
     "basic"
-    [ test "decimal" <| assertEqual (Ok 314159) (parseInt 10 "314159")
-    , test "simple oct" (assertEqual (Ok 15) (parseInt 8 "17"))
-    , test "hex" (assertEqual (Ok 2748) (parseInt 16 "abc"))
-    , test "hex 2" <| assertEqual (Ok 291) (parseInt 16 "123")
-    , test "base 32" <| assertEqual (Ok 32767) (parseInt 32 "VVV")
-    , test "base 36" <| assertEqual (Ok 1295) (parseInt 36 "ZZ")
-    , test "ignore leading zeroes" <| assertEqual (Ok 549) (parseInt 10 "00549")
-    , test "oct out of range" <| assert <| isErr (parseInt 8 "8")
-    , test "nonnumeric string, base 10" <| assert <| isErr (parseInt 10 "foobar")
-    , test "0x prefix is invalid" <| assert <| isErr (parseInt 16 "0xdeadbeef")
-    , test "invalid character" <| assertErr <| parseInt 10 "*&^*&^*y"
-    , test "invalid radix" <| assertErr <| parseInt 37 "90210"
+    [ test "decimal" <| assertEqual (Ok 314159) (parseInt "314159")
+    , test "simple oct" (assertEqual (Ok 15) (parseIntRadix 8 "17"))
+    , test "hex" (assertEqual (Ok 2748) (parseIntRadix 16 "abc"))
+    , test "hex 2" <| assertEqual (Ok 291) (parseIntRadix 16 "123")
+    , test "base 32" <| assertEqual (Ok 32767) (parseIntRadix 32 "VVV")
+    , test "base 36" <| assertEqual (Ok 1295) (parseIntRadix 36 "ZZ")
+    , test "ignore leading zeroes" <| assertEqual (Ok 549) (parseInt "00549")
+    , test "oct out of range" <| assert <| isErr (parseIntRadix 8 "8")
+    , test "nonnumeric string, base 10" <| assert <| isErr (parseInt "foobar")
+    , test "0x prefix is invalid" <| assert <| isErr (parseIntRadix 16 "0xdeadbeef")
+    , test "invalid character" <| assertErr <| parseInt "*&^*&^*y"
+    , test "invalid radix" <| assertErr <| parseIntRadix 37 "90210"
     ]
 
 
@@ -67,7 +67,7 @@ claimMatchesToInt : Test
 claimMatchesToInt =
   Check.Test.test
     "Matches results of String.toInt"
-    (parseInt 10 >> canonResult)
+    (parseInt >> canonResult)
     String.toInt
     stringInvestigator
     100
@@ -88,9 +88,9 @@ hexClaim =
   Check.Test.test
     "Hex conversion, dropping rightmost char results in dividing by 16"
     -- got
-    (String.dropRight 1 >> parseInt 16)
+    (String.dropRight 1 >> parseIntRadix 16)
     -- expected
-    (parseInt 16 >> Result.map (\i -> i // 16))
+    (parseIntRadix 16 >> Result.map (\i -> i // 16))
     hexStringInvestigator
     100
     (initialSeed 88)
@@ -100,8 +100,8 @@ hexClaim2 : Test
 hexClaim2 =
   Check.Test.test
     "Hex conversion, adding '0' to right results in multiplying by 16"
-    (parseInt 16 >> Result.map (\i -> i * 16))
-    ((\s -> s ++ "0") >> parseInt 16)
+    (parseIntRadix 16 >> Result.map (\i -> i * 16))
+    ((\s -> s ++ "0") >> parseIntRadix 16)
     hexStringInvestigator
     100
     (initialSeed 88)

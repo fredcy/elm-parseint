@@ -1,4 +1,4 @@
-module ParseInt (parseInt, Error(..)) where
+module ParseInt (parseInt, parseIntRadix, Error(..)) where
 
 import Char
 import Result exposing (andThen)
@@ -11,10 +11,15 @@ type Error
   | InvalidRadix Int
 
 
+parseInt : String -> Result Error Int
+parseInt =
+  parseIntRadix 10
+
+
 {-| Convert string to int assuming given radix.
 -}
-parseInt : Int -> String -> Result Error Int
-parseInt radix string =
+parseIntRadix : Int -> String -> Result Error Int
+parseIntRadix radix string =
   if 2 <= radix && radix <= 36 then
     parseIntR radix (String.reverse string)
   else
