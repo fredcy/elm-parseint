@@ -117,12 +117,20 @@ claimCrossCheck =
     roundTrip
     (Ok << snd)
     (CI.tuple
-      ( CI.rangeInt 2 36
+      ( radixInvestigator
       , CI.rangeInt 0 Random.maxInt
       )
     )
     100
     (initialSeed 99)
+
+
+{-| Investigate radix values. Based on CI.rangeInt but shrinks to 2 not 0. -}
+radixInvestigator : CI.Investigator Int
+radixInvestigator =
+  CI.Investigator
+    (CI.rangeInt 2 36 |> .generator)
+    (Shrink.atLeastInt 2)
 
 
 {-| Integer division that handles large numerators (mostly) correctly.  See
@@ -176,7 +184,7 @@ randomHexChar =
 -}
 shrinker : Shrink.Shrinker String
 shrinker s =
-  case String.uncons s |> Debug.log "shrinker" of
+  case String.uncons s of
     Nothing ->
       empty
 
