@@ -55,7 +55,23 @@ checkSuite =
   suite "checks" [ claimMatchesToInt, hexClaim, hexClaim2 ]
 
 
-canonResult : Result ParseInt.Error Int -> Result String Int
+genSuite : Test
+genSuite =
+  suite
+    "generator"
+    [ test "gen hex" <| assertEqual (Ok "BEEF") (toRadix 16 48879)
+    , test "gen dec" <| assertEqual (Ok "314159") (toRadix 10 314159)
+    , test "gen binary" <| assertEqual (Ok "100000") (toRadix 2 (2 ^ 5))
+    , test "gen oct" <| assertEqual (Ok "30071") (toRadix 8 12345)
+    , test "test zero" <| assertEqual (Ok "0") (toRadix 10 0)
+    , test "test negative" <| assertEqual (Ok "-123") (toRadix 10 -123)
+    , test "gen bad radix" <| assertErr <| toRadix 1 12345
+    , test "gen bad radix" <| assertErr <| toRadix 37 12345
+      --    , test "bad radix unsafe" <| assertEqual "asplode" <| toRadix' 37 36
+    ]
+
+
+canonResult : Result ParseInt.Error a -> Result String a
 canonResult r =
   case r of
     Ok i ->
@@ -72,6 +88,39 @@ claimMatchesToInt =
     (parseInt >> canonResult)
     String.toInt
     stringInvestigator
+    100
+    (initialSeed 99)
+
+
+claimMatchesToString : Test
+claimMatchesToString =
+  Check.Test.test
+    "toRadix 10 matches results to toString"
+    (toRadix 10 >> canonResult)
+    (Ok << toString)
+    (CI.rangeInt Random.minInt Random.maxInt)
+    100
+    (initialSeed 134)
+
+
+{-| Convert i to string with given radix, then back again to int.
+-}
+roundTrip : ( Int, Int ) -> Result Error Int
+roundTrip ( radix, i ) =
+  toRadix radix i |> Result.withDefault "" >> parseIntRadix radix
+
+
+claimCrossCheck : Test
+claimCrossCheck =
+  Check.Test.test
+    "parseIntRadix inverts toRadix for non-negative Ints"
+    roundTrip
+    (Ok << snd)
+    (CI.tuple
+      ( CI.rangeInt 2 36
+      , CI.rangeInt 0 Random.maxInt
+      )
+    )
     100
     (initialSeed 99)
 
@@ -117,7 +166,8 @@ randomDigitChar =
 randomHexChar : Random.Generator Char
 randomHexChar =
   let
-    hexChars = Array.fromList [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ]
+    hexChars =
+      Array.fromList [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ]
   in
     Random.map (\i -> Array.get i hexChars |> Maybe.withDefault 'X') (Random.int 0 15)
 
@@ -159,4 +209,12 @@ hexStringInvestigator =
 
 main : Element
 main =
-  elementRunner <| suite "all" [ tests, checkSuite ]
+  elementRunner
+    <| suite
+        "all"
+        [ tests
+        , checkSuite
+        , genSuite
+        , claimMatchesToString
+        , claimCrossCheck
+        ]

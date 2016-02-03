@@ -1,9 +1,17 @@
-module ParseInt (parseInt, parseIntOct, parseIntHex, parseIntRadix, Error(..)) where
+module ParseInt (parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix', Error(..)) where
 
-{-| Convert String value to Int.
+{-| Convert String value to Int, or Int to String, with given radix.
+
+The `parseInt` function here is similar to Javascript's parseInt(), parsing a
+decimal string and returning the corresponding Int value if any. `parseIntOct`,
+`parseIntHex`, and `parseIntRadix` parse strings encoded as octal, hexadecimal,
+or arbitrary radix, respectively.
+
+The `toRadix` function inverts `parseInt`. `toRadix 10` is equivalent to
+`toString` for Int arguments.
 
 # Functions
-@docs parseInt, parseIntOct, parseIntHex, parseIntRadix
+@docs parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix'
 
 # Errors
 @docs Error
@@ -14,7 +22,7 @@ import Result exposing (andThen)
 import String
 
 
-{-| Possible Result.Err returns from the parseInt functions.
+{-| Possible Result.Err returns from these functions.
 -}
 type Error
   = InvalidChar Char
@@ -50,12 +58,13 @@ parseIntHex =
 
 
 {-| Convert String to Int assuming given radix. Radix can be any of
-2..36. Leading zeroes are ignored. Valid characters are the alphanumerics:
-those in the ASCII range [0-9a-zA-Z]. Case does not matter. For radixes beyond
-16 the normal [A-F] range for hexadecimal is extended in the natural way. Any
-invalid character results in a `Err` return. Any valid character outside of the
-range defined by the radix also results in an `Err`. An `Ok` return means that the
-entire input string was consumed. The empty string results in `Ok 0`
+2..36. Leading zeroes are ignored. Valid characters are the alphanumerics: those
+in the ASCII range [0-9a-zA-Z]. Case does not matter. For radixes beyond 16 the
+normal [A-F] range for hexadecimal is extended in the natural way. Any invalid
+character results in a `Err` return. Any valid character outside of the range
+defined by the radix also results in an `Err`. In particular, any initial '-' or
+' ' (space) is an error. An `Ok` return means that the entire input string was
+consumed. The empty string results in `Ok 0`
 
     parseIntRadix 16 "DEADBEEF" = Ok 3735928559
 -}
@@ -93,7 +102,8 @@ charOffset basis c =
 isBetween : Char -> Char -> Char -> Bool
 isBetween lower upper c =
   let
-    ci = Char.toCode c
+    ci =
+      Char.toCode c
   in
     Char.toCode lower <= ci && ci <= Char.toCode upper
 
@@ -121,4 +131,51 @@ intFromChar radix c =
       else
         Err (OutOfRange c)
   in
-    toInt `Result.andThen` validInt
+    toInt `andThen` validInt
+
+
+{-| Convert Int to corresponding Char representing it as a digit. Values from
+10..15 are represented as upper-case 'A'..'F'. Values 16 and above extend the
+hexadecimal characters in the natural way. This function assumes that the input
+value is in the rage 0 .. 36.
+-}
+charFromInt : Int -> Char
+charFromInt i =
+  if i < 10 then
+    Char.fromCode <| i + Char.toCode '0'
+  else if i < 36 then
+    Char.fromCode <| i - 10 + Char.toCode 'A'
+  else
+    Debug.crash <| toString i
+
+
+{-| Convert Int to String assuming given radix. Radix values from 2..36 are
+allowed; others result in an `Err InvalidRadix`. Negative numbers get an initial
+'-'.
+
+    toRadix 16 1234 == Ok "4D2"
+    toRadix 8 -99 == Ok "-143"
+-}
+toRadix : Int -> Int -> Result Error String
+toRadix radix i =
+  if 2 <= radix && radix <= 36 then
+    if i < 0 then
+      Ok <| "-" ++ toRadix' radix (-i)
+    else
+      Ok <| toRadix' radix i
+  else
+    Err <| InvalidRadix radix
+
+
+{-| Convert Int to String assuming given radix. Radix value must be in 2..36
+(not checked, so it can crash).
+
+    toRadix' 16 3735928559 == "DEADBEEF"
+    toRadix' 37 36 --> crash
+-}
+toRadix' : Int -> Int -> String
+toRadix' radix i =
+  if i < radix then
+    String.fromChar <| charFromInt i
+  else
+    toRadix' radix (i // radix) ++ (String.fromChar <| charFromInt (i % radix))
