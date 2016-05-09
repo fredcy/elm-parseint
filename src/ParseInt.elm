@@ -1,4 +1,4 @@
-module ParseInt (parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix', Error(..)) where
+module ParseInt exposing (parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix', Error(..))
 
 {-| Convert String value to Int, or Int to String, with given radix.
 
