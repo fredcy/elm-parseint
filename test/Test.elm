@@ -1,16 +1,15 @@
-module Main (..) where
+module Main exposing (..)
 
 import Array
-import Check.Investigator as CI
-import Check.Test
-import Graphics.Element exposing (Element)
+--import Check.Investigator as CI
+--import Check.Test
 import ElmTest exposing (..)
-import Lazy.List exposing (empty, (:::))
+--import Lazy.List exposing (empty, (:::))
 import ParseInt exposing (..)
-import Random exposing (initialSeed)
-import Random.Char
-import Random.String
-import Shrink exposing (Shrinker)
+--import Random exposing (initialSeed)
+--import Random.Char
+--import Random.String
+--import Shrink exposing (Shrinker)
 import String
 
 
@@ -49,7 +48,7 @@ tests =
     , test "invalid radix" <| assertErr <| parseIntRadix 37 "90210"
     ]
 
-
+{-
 checkSuite : Test
 checkSuite =
   suite "checks" [ claimMatchesToInt, hexClaim, hexClaim2 ]
@@ -214,15 +213,18 @@ hexStringInvestigator =
     (Random.String.rangeLengthString 1 13 randomHexChar)
     shrinker
 
+-}
 
-main : Element
+main : Program Never
 main =
-  elementRunner
+  runSuite
     <| suite
         "all"
         [ tests
+        {-
         , checkSuite
         , genSuite
         , claimMatchesToString
         , claimCrossCheck
+        -}
         ]
