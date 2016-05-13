@@ -3,8 +3,7 @@ module Main exposing (..)
 import Array
 --import Check.Investigator as CI
 --import Check.Test
-import ElmTest exposing (Test, Assertion, assert, assertEqual, test, suite)
-import ElmTest.Runner.Html
+import ElmTest exposing (Test, Assertion, assert, assertEqual, test, suite, runSuiteHtml)
 --import Lazy.List exposing (empty, (:::))
 import ParseInt exposing (..)
 --import Random exposing (initialSeed)
@@ -218,7 +217,7 @@ hexStringInvestigator =
 
 main : Program Never
 main =
-  ElmTest.Runner.Html.runSuite
+  runSuiteHtml
     <| suite
         "all"
         [ tests
