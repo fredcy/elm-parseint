@@ -1,3 +1,4 @@
 build:
-	elm make Test.elm --output index.html
+	elm make Test.elm --output elm.js
+
 
