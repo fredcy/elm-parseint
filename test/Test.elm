@@ -66,6 +66,8 @@ genSuite =
         , test "gen bad radix" <| assertErr <| toRadix 1 12345
         , test "gen bad radix" <| assertErr <| toRadix 37 12345
           --    , test "bad radix unsafe" <| assertEqual "asplode" <| toRadix' 37 36
+        , test "to hex" <| assertEqual "BEEF" (toHex 48879)
+        , test "to oct" <| assertEqual "153213" (toOct 54923)
         ]
 
 

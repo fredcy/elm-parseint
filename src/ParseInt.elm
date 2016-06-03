@@ -1,9 +1,20 @@
-module ParseInt exposing (parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix', Error(..))
+module ParseInt
+    exposing
+        ( parseInt
+        , parseIntOct
+        , parseIntHex
+        , parseIntRadix
+        , toRadix
+        , toRadix'
+        , toHex
+        , toOct
+        , Error(..)
+        )
 
 {-| Convert String value to Int, or Int to String, with given radix.
 
 # Functions
-@docs parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix'
+@docs parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix', toOct, toHex
 
 # Errors
 @docs Error
@@ -17,9 +28,9 @@ import String
 {-| Possible Result.Err returns from these functions.
 -}
 type Error
-  = InvalidChar Char
-  | OutOfRange Char
-  | InvalidRadix Int
+    = InvalidChar Char
+    | OutOfRange Char
+    | InvalidRadix Int
 
 
 {-| Convert String to Int assuming base 10.
@@ -30,14 +41,14 @@ type Error
 -}
 parseInt : String -> Result Error Int
 parseInt =
-  parseIntRadix 10
+    parseIntRadix 10
 
 
 {-| Convert String to Int assuming base 8 (octal). No leading '0' is required.
 -}
 parseIntOct : String -> Result Error Int
 parseIntOct =
-  parseIntRadix 8
+    parseIntRadix 8
 
 
 {-| Convert String to Int assuming base 16 (hexadecimal). No leading characters
@@ -46,7 +57,7 @@ will cause an `Err` return.
 -}
 parseIntHex : String -> Result Error Int
 parseIntHex =
-  parseIntRadix 16
+    parseIntRadix 16
 
 
 {-| Convert String to Int assuming given radix. Radix can be any of
@@ -62,42 +73,42 @@ consumed. The empty string results in `Ok 0`
 -}
 parseIntRadix : Int -> String -> Result Error Int
 parseIntRadix radix string =
-  if 2 <= radix && radix <= 36 then
-    parseIntR radix (String.reverse string)
-  else
-    Err (InvalidRadix radix)
+    if 2 <= radix && radix <= 36 then
+        parseIntR radix (String.reverse string)
+    else
+        Err (InvalidRadix radix)
 
 
 parseIntR : Int -> String -> Result Error Int
 parseIntR radix rstring =
-  case String.uncons rstring of
-    Nothing ->
-      Ok 0
+    case String.uncons rstring of
+        Nothing ->
+            Ok 0
 
-    Just ( c, rest ) ->
-      intFromChar radix c
-        `andThen` (\ci ->
-                    parseIntR radix rest
-                      `andThen` (\ri -> Ok (ci + ri * radix))
-                  )
+        Just ( c, rest ) ->
+            intFromChar radix c
+                `andThen` (\ci ->
+                            parseIntR radix rest
+                                `andThen` (\ri -> Ok (ci + ri * radix))
+                          )
 
 
 {-| Offset of character from basis character in the ASCII table.
 -}
 charOffset : Char -> Char -> Int
 charOffset basis c =
-  Char.toCode c - Char.toCode basis
+    Char.toCode c - Char.toCode basis
 
 
 {-| Test if character falls in given range (inclusive of the limits) in the ASCII table.
 -}
 isBetween : Char -> Char -> Char -> Bool
 isBetween lower upper c =
-  let
-    ci =
-      Char.toCode c
-  in
-    Char.toCode lower <= ci && ci <= Char.toCode upper
+    let
+        ci =
+            Char.toCode c
+    in
+        Char.toCode lower <= ci && ci <= Char.toCode upper
 
 
 {-| Convert alphanumeric character to int value as a "digit", validating against
@@ -106,24 +117,24 @@ the given radix. Alphabetic characters past "F" are extended in the natural way:
 -}
 intFromChar : Int -> Char -> Result Error Int
 intFromChar radix c =
-  let
-    toInt =
-      if isBetween '0' '9' c then
-        Ok (charOffset '0' c)
-      else if isBetween 'a' 'z' c then
-        Ok (10 + charOffset 'a' c)
-      else if isBetween 'A' 'Z' c then
-        Ok (10 + charOffset 'A' c)
-      else
-        Err (InvalidChar c)
+    let
+        toInt =
+            if isBetween '0' '9' c then
+                Ok (charOffset '0' c)
+            else if isBetween 'a' 'z' c then
+                Ok (10 + charOffset 'a' c)
+            else if isBetween 'A' 'Z' c then
+                Ok (10 + charOffset 'A' c)
+            else
+                Err (InvalidChar c)
 
-    validInt i =
-      if i < radix then
-        Ok i
-      else
-        Err (OutOfRange c)
-  in
-    toInt `andThen` validInt
+        validInt i =
+            if i < radix then
+                Ok i
+            else
+                Err (OutOfRange c)
+    in
+        toInt `andThen` validInt
 
 
 {-| Convert Int to corresponding Char representing it as a digit. Values from
@@ -133,12 +144,12 @@ value is in the rage 0 .. 36.
 -}
 charFromInt : Int -> Char
 charFromInt i =
-  if i < 10 then
-    Char.fromCode <| i + Char.toCode '0'
-  else if i < 36 then
-    Char.fromCode <| i - 10 + Char.toCode 'A'
-  else
-    Debug.crash <| toString i
+    if i < 10 then
+        Char.fromCode <| i + Char.toCode '0'
+    else if i < 36 then
+        Char.fromCode <| i - 10 + Char.toCode 'A'
+    else
+        Debug.crash <| toString i
 
 
 {-| Convert Int to String assuming given radix. Radix values from 2..36 are
@@ -150,13 +161,13 @@ allowed; others result in an `Err InvalidRadix`. Negative numbers get an initial
 -}
 toRadix : Int -> Int -> Result Error String
 toRadix radix i =
-  if 2 <= radix && radix <= 36 then
-    if i < 0 then
-      Ok <| "-" ++ toRadix' radix (-i)
+    if 2 <= radix && radix <= 36 then
+        if i < 0 then
+            Ok <| "-" ++ toRadix' radix (-i)
+        else
+            Ok <| toRadix' radix i
     else
-      Ok <| toRadix' radix i
-  else
-    Err <| InvalidRadix radix
+        Err <| InvalidRadix radix
 
 
 {-| Convert Int to String assuming given radix. Radix value must be in 2..36
@@ -167,7 +178,21 @@ toRadix radix i =
 -}
 toRadix' : Int -> Int -> String
 toRadix' radix i =
-  if i < radix then
-    String.fromChar <| charFromInt i
-  else
-    toRadix' radix (i // radix) ++ (String.fromChar <| charFromInt (i % radix))
+    if i < radix then
+        String.fromChar <| charFromInt i
+    else
+        toRadix' radix (i // radix) ++ (String.fromChar <| charFromInt (i % radix))
+
+
+{-| Convert Int to octal String.
+-}
+toOct : Int -> String
+toOct =
+    toRadix' 8
+
+
+{-| Convert Int to hexidecimal String.
+-}
+toHex : Int -> String
+toHex =
+    toRadix' 16
