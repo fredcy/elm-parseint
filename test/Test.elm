@@ -46,6 +46,9 @@ tests =
         , test "0x prefix is invalid" <| assert <| isErr (parseIntRadix 16 "0xdeadbeef")
         , test "invalid character" <| assertErr <| parseInt "*&^*&^*y"
         , test "invalid radix" <| assertErr <| parseIntRadix 37 "90210"
+        , test "int from char" <| assertEqual (Ok 7) (intFromChar 10 '7')
+        , test "char from int" <| assertEqual '7' (charFromInt 7)
+        , test "hex char from int" <| assertEqual 'C' (charFromInt 12)
         ]
 
 

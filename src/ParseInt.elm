@@ -8,13 +8,15 @@ module ParseInt
         , toRadix'
         , toHex
         , toOct
+        , intFromChar
+        , charFromInt
         , Error(..)
         )
 
 {-| Convert String value to Int, or Int to String, with given radix.
 
 # Functions
-@docs parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix', toOct, toHex
+@docs parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadix', toOct, toHex, intFromChar, charFromInt
 
 # Errors
 @docs Error
@@ -111,9 +113,12 @@ isBetween lower upper c =
         Char.toCode lower <= ci && ci <= Char.toCode upper
 
 
-{-| Convert alphanumeric character to int value as a "digit", validating against
-the given radix. Alphabetic characters past "F" are extended in the natural way:
-'G' == 16, 'H' == 17, etc. Upper and lower case are treated the same.
+{-| Convert an alphanumeric character to an int value as a "digit", validating
+against the given radix. Alphabetic characters past "F" are extended in the
+natural way: 'G' == 16, 'H' == 17, etc. Upper and lower case are treated the
+same. Passing a non-alphanumeric character results in the `InvalidChar`
+error. If the resulting value would be greater than the given radix, an
+`OutOfRange` error results instead.
 -}
 intFromChar : Int -> Char -> Result Error Int
 intFromChar radix c =
@@ -140,7 +145,7 @@ intFromChar radix c =
 {-| Convert Int to corresponding Char representing it as a digit. Values from
 10..15 are represented as upper-case 'A'..'F'. Values 16 and above extend the
 hexadecimal characters in the natural way. This function assumes that the input
-value is in the rage 0 .. 36.
+value is in the range 0 .. 36.
 -}
 charFromInt : Int -> Char
 charFromInt i =
