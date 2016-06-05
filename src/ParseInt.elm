@@ -191,7 +191,7 @@ toOct =
     toRadix' 8
 
 
-{-| Convert Int to hexidecimal String.
+{-| Convert Int to hexadecimal String.
 -}
 toHex : Int -> String
 toHex =
