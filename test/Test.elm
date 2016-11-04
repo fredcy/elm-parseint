@@ -4,7 +4,7 @@ import Array
 import Check exposing (Claim, check, claim, that, is, for)
 import Check.Producer as CI
 import Check.Test exposing (evidenceToTest)
-import ElmTest exposing (Test, Assertion, assert, assertEqual, test, suite, runSuiteHtml)
+import Legacy.ElmTest as ElmTest exposing (Test, Assertion, assert, assertEqual, test, suite, runSuiteHtml)
 import Lazy.List exposing (empty, (:::))
 import ParseInt exposing (..)
 import Random exposing (initialSeed)
