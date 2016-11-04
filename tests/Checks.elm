@@ -19,7 +19,7 @@ all =
 
 testMatchesToString : Test
 testMatchesToString =
-    Test.fuzz (Fuzz.intRange 0 Random.maxInt) "basic parseInt" <|
+    Test.fuzz (Fuzz.intRange 0 Random.maxInt) "parseInt vs toString" <|
         \i -> Expect.equal (Ok i) (toString i |> parseInt)
 
 
