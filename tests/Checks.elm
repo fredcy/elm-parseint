@@ -19,13 +19,13 @@ all =
 
 testMatchesToString : Test
 testMatchesToString =
-    Test.fuzz (Fuzz.intRange 0 Random.maxInt) "basic parseInt" <|
+    Test.fuzz (Fuzz.intRange Random.minInt Random.maxInt) "basic parseInt" <|
         \i -> Expect.equal (Ok i) (toString i |> parseInt)
 
 
 testMatchesToInt : Test
 testMatchesToInt =
-    Test.fuzz (Fuzz.intRange 0 Random.maxInt) "parseInt vs toInt" <|
+    Test.fuzz (Fuzz.intRange Random.minInt Random.maxInt) "parseInt vs toInt" <|
         \i ->
             let
                 intString =
@@ -46,7 +46,7 @@ fuzzerRadixInt : Fuzz.Fuzzer ( Int, Int )
 fuzzerRadixInt =
     Fuzz.map2 (,)
         (Fuzz.intRange 2 36)
-        (Fuzz.intRange 0 Random.maxInt)
+        (Fuzz.intRange Random.minInt Random.maxInt)
 
 
 testRoundTrip : Test
