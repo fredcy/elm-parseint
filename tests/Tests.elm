@@ -43,6 +43,8 @@ parseTests =
             \() -> Expect.equal (Ok 32767) (parseIntRadix 32 "VVV")
         , test "base 36" <|
             \() -> Expect.equal (Ok 1295) (parseIntRadix 36 "ZZ")
+        , test "negative" <|
+            \() -> Expect.equal (Ok -1295) (parseIntRadix 36 "-ZZ")
         , test "empty string" <|
             \() -> Expect.equal (Ok 0) (parseInt "")
         , test "ignore leading zeroes" <|
@@ -53,6 +55,10 @@ parseTests =
             \() -> expectErr <| (parseInt "foobar")
         , test "0x prefix is invalid" <|
             \() -> expectErr <| (parseIntRadix 16 "0xdeadbeef")
+        , test "'-' only is invalid" <|
+            \() -> expectErr <| (parseIntRadix 16 "-")
+        , test "'-' in the middle is invalid" <|
+            \() -> expectErr <| (parseIntRadix 16 "7-8")
         , test "invalid character" <|
             \() -> expectErr <| parseInt "*&^*&^*y"
         , test "invalid radix" <|

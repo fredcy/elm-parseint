@@ -67,7 +67,7 @@ parseIntHex =
 in the ASCII range [0-9a-zA-Z]. Case does not matter. For radixes beyond 16 the
 normal [A-F] range for hexadecimal is extended in the natural way. Any invalid
 character results in a `Err` return. Any valid character outside of the range
-defined by the radix also results in an `Err`. In particular, any initial '-' or
+defined by the radix also results in an `Err`. In particular, any initial
 ' ' (space) is an error. An `Ok` return means that the entire input string was
 consumed. The empty string results in `Ok 0`
 
@@ -76,7 +76,21 @@ consumed. The empty string results in `Ok 0`
 parseIntRadix : Int -> String -> Result Error Int
 parseIntRadix radix string =
     if 2 <= radix && radix <= 36 then
-        parseIntR radix (String.reverse string)
+        let
+            ( sign, unsignedString ) =
+                -- If the string matches /^-./, we consider it negative, and begin parsing after
+                case String.uncons string of
+                    Just ( '-', remainder ) ->
+                        -- Need to double check that this string isn't just '-'
+                        if String.uncons remainder /= Nothing then
+                            ( -1, remainder )
+                        else
+                            ( 1, string )
+
+                    _ ->
+                        ( 1, string )
+        in
+            String.reverse unsignedString |> parseIntR radix |> Result.map ((*) sign)
     else
         Err (InvalidRadix radix)
 
