@@ -8,7 +8,7 @@ import ParseInt exposing (..)
 
 all : Test
 all =
-    concat [ parseTests, genTests ]
+    describe "specific tests" [ parseTests, genTests ]
 
 
 isErr : Result e a -> Bool
@@ -75,8 +75,8 @@ genTests =
         , test "gen oct" <| \() -> Expect.equal (Ok "30071") (toRadix 8 12345)
         , test "test zero" <| \() -> Expect.equal (Ok "0") (toRadix 10 0)
         , test "test negative" <| \() -> Expect.equal (Ok "-123") (toRadix 10 -123)
-        , test "gen bad radix" <| \() -> expectErr <| toRadix 1 12345
-        , test "gen bad radix" <| \() -> expectErr <| toRadix 37 12345
+        , test "gen bad radix, small" <| \() -> expectErr <| toRadix 1 12345
+        , test "gen bad radix, large" <| \() -> expectErr <| toRadix 37 12345
           --    , test "bad radix unsafe" <| \() -> Expect.equal "asplode" <| toRadix' 37 36
         , test "to hex" <| \() -> Expect.equal "BEEF" (toHex 48879)
         , test "to oct" <| \() -> Expect.equal "153213" (toOct 54923)

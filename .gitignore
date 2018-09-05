@@ -2,3 +2,5 @@ documentation.json
 elm-stuff
 elm.js
 index.html
+node_modules
+package-lock.json

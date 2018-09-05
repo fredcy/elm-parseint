@@ -9,7 +9,7 @@ import String
 
 
 all =
-    Test.concat
+    describe "fuzz tests"
         [ testMatchesToString
         , testMatchesToInt
         , testToRadixVsToString
@@ -20,7 +20,7 @@ all =
 testMatchesToString : Test
 testMatchesToString =
     Test.fuzz (Fuzz.intRange 0 Random.maxInt) "basic parseInt" <|
-        \i -> Expect.equal (Ok i) (toString i |> parseInt)
+        \i -> Expect.equal (Ok i) (String.fromInt i |> parseInt)
 
 
 testMatchesToInt : Test
@@ -29,22 +29,22 @@ testMatchesToInt =
         \i ->
             let
                 intString =
-                    toString i
+                    String.fromInt i
             in
                 Expect.equal
                     (String.toInt intString)
-                    (parseInt intString |> Result.mapError toString)
+                    (parseInt intString |> Result.toMaybe)
 
 
 testToRadixVsToString : Test
 testToRadixVsToString =
-    Test.fuzz Fuzz.int "toRadix vs toString" <|
-        \i -> Expect.equal (toRadix 10 i |> Result.withDefault "") (toString i)
+    Test.fuzz Fuzz.int "toRadix vs String.fromInt" <|
+        \i -> Expect.equal (toRadix 10 i |> Result.withDefault "") (String.fromInt i)
 
 
 fuzzerRadixInt : Fuzz.Fuzzer ( Int, Int )
 fuzzerRadixInt =
-    Fuzz.map2 (,)
+    Fuzz.map2 Tuple.pair
         (Fuzz.intRange 2 36)
         (Fuzz.intRange 0 Random.maxInt)
 

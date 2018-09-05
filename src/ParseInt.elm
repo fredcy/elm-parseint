@@ -1,25 +1,20 @@
-module ParseInt
-    exposing
-        ( parseInt
-        , parseIntOct
-        , parseIntHex
-        , parseIntRadix
-        , toRadix
-        , toRadixUnsafe
-        , toHex
-        , toOct
-        , intFromChar
-        , charFromInt
-        , Error(..)
-        )
+module ParseInt exposing
+    ( parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadixUnsafe, toOct, toHex, intFromChar, charFromInt
+    , Error(..)
+    )
 
 {-| Convert String value to Int, or Int to String, with given radix.
 
+
 # Functions
+
 @docs parseInt, parseIntOct, parseIntHex, parseIntRadix, toRadix, toRadixUnsafe, toOct, toHex, intFromChar, charFromInt
 
+
 # Errors
+
 @docs Error
+
 -}
 
 import Char
@@ -71,12 +66,15 @@ defined by the radix also results in an `Err`. In particular, any initial '-' or
 ' ' (space) is an error. An `Ok` return means that the entire input string was
 consumed. The empty string results in `Ok 0`
 
-    parseIntRadix 16 "DEADBEEF" = Ok 3735928559
+    parseIntRadix 16 "DEADBEEF" =
+        Ok 3735928559
+
 -}
 parseIntRadix : Int -> String -> Result Error Int
 parseIntRadix radix string =
     if 2 <= radix && radix <= 36 then
         parseIntR radix (String.reverse string)
+
     else
         Err (InvalidRadix radix)
 
@@ -111,7 +109,7 @@ isBetween lower upper c =
         ci =
             Char.toCode c
     in
-        Char.toCode lower <= ci && ci <= Char.toCode upper
+    Char.toCode lower <= ci && ci <= Char.toCode upper
 
 
 {-| Convert an alphanumeric character to an int value as a "digit", validating
@@ -127,20 +125,24 @@ intFromChar radix c =
         toInt =
             if isBetween '0' '9' c then
                 Ok (charOffset '0' c)
+
             else if isBetween 'a' 'z' c then
                 Ok (10 + charOffset 'a' c)
+
             else if isBetween 'A' 'Z' c then
                 Ok (10 + charOffset 'A' c)
+
             else
                 Err (InvalidChar c)
 
         validInt i =
             if i < radix then
                 Ok i
+
             else
                 Err (OutOfRange c)
     in
-        toInt |> Result.andThen validInt
+    toInt |> Result.andThen validInt
 
 
 {-| Convert Int to corresponding Char representing it as a digit. Values from
@@ -152,10 +154,12 @@ charFromInt : Int -> Char
 charFromInt i =
     if i < 10 then
         Char.fromCode <| i + Char.toCode '0'
+
     else if i < 36 then
         Char.fromCode <| i - 10 + Char.toCode 'A'
+
     else
-        Debug.crash <| toString i
+        '?'
 
 
 {-| Convert Int to String assuming given radix. Radix values from 2..36 are
@@ -163,15 +167,19 @@ allowed; others result in an `Err InvalidRadix`. Negative numbers get an initial
 '-'.
 
     toRadix 16 1234 == Ok "4D2"
+
     toRadix 8 -99 == Ok "-143"
+
 -}
 toRadix : Int -> Int -> Result Error String
 toRadix radix i =
     if 2 <= radix && radix <= 36 then
         if i < 0 then
-            Ok <| "-" ++ toRadixUnsafe radix (-i)
+            Ok <| "-" ++ toRadixUnsafe radix -i
+
         else
             Ok <| toRadixUnsafe radix i
+
     else
         Err <| InvalidRadix radix
 
@@ -180,14 +188,17 @@ toRadix radix i =
 (not checked, so it can crash).
 
     toRadixUnsafe 16 3735928559 == "DEADBEEF"
+
     toRadixUnsafe 37 36 --> crash
+
 -}
 toRadixUnsafe : Int -> Int -> String
 toRadixUnsafe radix i =
     if i < radix then
         String.fromChar <| charFromInt i
+
     else
-        toRadixUnsafe radix (i // radix) ++ (String.fromChar <| charFromInt (i % radix))
+        toRadixUnsafe radix (i // radix) ++ (String.fromChar <| charFromInt (modBy radix i))
 
 
 {-| Convert Int to octal String.
